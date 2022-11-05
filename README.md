@@ -7,7 +7,7 @@ Python implementation for the MMC5983MA 3-axis magnetometer
 
 It's recommended to install the package's requirements using `pip install -r requirements.txt` before installing the package.
 
-To install run: `python setup.py install`
+To install run: `python3 -m pip install .`
 
 ----------
 ## **I2C Tools**
