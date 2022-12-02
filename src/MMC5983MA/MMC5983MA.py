@@ -100,6 +100,13 @@ class MMC5983MA:
         self._BW = 3       # Set bandwidth = 800 Hz
         self._CM_FREQ = 0  # Single measurement
 
+        self._CALIBRATION_X16b = 0
+        self._CALIBRATION_Y16b = 0
+        self._CALIBRATION_Z16b = 0
+        self._CALIBRATION_X18b = 0
+        self._CALIBRATION_Y18b = 0
+        self._CALIBRATION_Z18b = 0
+
     @property
     def _PRODUCT_ID(self) -> int:
         return self._bus.read_byte_data(self._DEVICE_ADDR, CONSTANTS.PRODUCT_ID_ADDR.value)
@@ -331,12 +338,18 @@ class MMC5983MA:
     @property
     def _raw_data_mag18(self) -> Tuple[int, int, int]:
         data = self._bus.read_i2c_block_data(self._DEVICE_ADDR, 0x00, 7)
-        return ( (data[0] << 10) + (data[1] << 2) + ((data[6] >> 6) & 0x3), (data[2] << 10) + (data[3] << 2) + ((data[6] >> 4) & 0x3), (data[4] << 10) + (data[5] << 2) + ((data[6] >> 2) & 0x3))
+        return ( (data[0] << 10) + (data[1] << 2) + ((data[6] >> 6) & 0x3) - self._CALIBRATION_X18b,
+                 (data[2] << 10) + (data[3] << 2) + ((data[6] >> 4) & 0x3) - self._CALIBRATION_Y18b,
+                 (data[4] << 10) + (data[5] << 2) + ((data[6] >> 2) & 0x3) - self._CALIBRATION_Z18b
+                )
 
     @property
     def _raw_data_mag16(self) -> Tuple[int, int, int]:
         data = self._bus.read_i2c_block_data(self._DEVICE_ADDR, 0x00, 6)
-        return ( (data[0] << 8) + data[1], (data[2] << 8) + data[3], (data[4] << 8) + data[5] )
+        return ( (data[0] << 8) + data[1] - self._CALIBRATION_X16b,
+                 (data[2] << 8) + data[3] - self._CALIBRATION_Y16b,
+                 (data[4] << 8) + data[5] - self._CALIBRATION_Z16b
+                )
 
     @property
     def _raw_data_temp(self) -> int:
@@ -477,12 +490,33 @@ class MMC5983MA:
         z = ( (raw_mag_data[2] - self._HALF_18BITS) / self._TO_GAUSS_18b) * self._GAUSS_TO_UT
         return (x, y, z)
 
+    @property
+    def calibrate(self) -> bool:
+        self.__SET(True)
+        time.sleep(500e-9) # 500 ns
+        x1, y1, z1 = self._raw_data_mag16
+        x3, y3, z3 = self._raw_data_mag18
+        self.__RESET(True)
+        time.sleep(500e-9) # 500 ns
+        x2, y2, z2 = self._raw_data_mag16
+        x4, y4, z4 = self._raw_data_mag18
+
+        self._CALIBRATION_X16b = (x1 + x2) / 2
+        self._CALIBRATION_Y16b = (y1 + y2) / 2
+        self._CALIBRATION_Z16b = (z1 + z2) / 2
+        self._CALIBRATION_X18b = (x3 + x4) / 2
+        self._CALIBRATION_Y18b = (y3 + y4) / 2
+        self._CALIBRATION_Z18b = (z3 + z4) / 2
+
+        return True
 
     
 
 if __name__ == '__main__':
     sensor = MMC5983MA()
     
+    sensor.calibrate
+
     print(f"Setting: {str(MeasurementType.SINGLE)}")
     sensor.measurement_type = MeasurementType.SINGLE
     print(f"Setting: {str(BandwidthValues.BANDWIDTH_800HZ)}")
