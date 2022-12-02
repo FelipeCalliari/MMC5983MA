@@ -99,8 +99,6 @@ class MMC5983MA:
         
         self._BW = 3       # Set bandwidth = 800 Hz
         self._CM_FREQ = 0  # Single measurement
-        
-        time.sleep(0.010)        
 
     @property
     def _PRODUCT_ID(self) -> int:
@@ -150,6 +148,7 @@ class MMC5983MA:
     
     def __RESET(self, value) -> None:
         self._bus.write_byte_data(self._DEVICE_ADDR, CONSTANTS.INTERNAL_CONTROL_0.value, bool(value) << 4)
+        time.sleep(0.0005)
 
     _RESET = property(None, __RESET, None,
         """Writing `1` will cause the chip to do the Reset operation, which will allow large reset current to flow
@@ -157,6 +156,7 @@ class MMC5983MA:
     
     def __SET(self, value) -> None:
         self._bus.write_byte_data(self._DEVICE_ADDR, CONSTANTS.INTERNAL_CONTROL_0.value, bool(value) << 3)
+        time.sleep(0.0005)
 
     _SET = property(None, __SET, None,
         """Writing `1` will cause the chip to do the Set operation, which will allow large set current to flow
@@ -331,7 +331,7 @@ class MMC5983MA:
     @property
     def _raw_data_mag18(self) -> Tuple[int, int, int]:
         data = self._bus.read_i2c_block_data(self._DEVICE_ADDR, 0x00, 7)
-        return ( (data[0] << 10) + (data[1] << 2) + ((data[6] >> 6) & 0x2), (data[2] << 10) + (data[3] << 2) + ((data[6] >> 4) & 0x2), (data[4] << 10) + (data[5] << 2) + ((data[6] >> 2) & 0x2))
+        return ( (data[0] << 10) + (data[1] << 2) + ((data[6] >> 6) & 0x3), (data[2] << 10) + (data[3] << 2) + ((data[6] >> 4) & 0x3), (data[4] << 10) + (data[5] << 2) + ((data[6] >> 2) & 0x3))
 
     @property
     def _raw_data_mag16(self) -> Tuple[int, int, int]:
