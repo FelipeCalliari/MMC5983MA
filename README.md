@@ -59,9 +59,11 @@ i2cdetect will display a grid with the I2C devices connected to your system.
 
   * temperature
   * magnetic16b_raw
+  * magnetic16b_Signed
   * magnetic16b_Gauss
   * magnetic16b_uTesla
   * magnetic18b_raw
+  * magnetic18b_Signed
   * magnetic18b_Gauss
   * magnetic18b_uTesla
   * bandwidth

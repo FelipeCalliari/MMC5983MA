@@ -434,6 +434,32 @@ class MMC5983MA:
         return self._raw_data_mag18
 
     @property
+    def magnetic16b_Signed(self) -> Tuple[float, float, float]:
+        """The processed magnetometer sensor values.
+        A 3-tuple of X, Y, Z axis values in ADC unit that are signed floats."""
+        if self._STATUS_MEASUREMENT == MeasurementType.SINGLE:
+            self._RUN_SINGLE_MEASUREMENT()
+
+        raw_mag_data = self._raw_data_mag16
+        x = raw_mag_data[0] - self._HALF_16BITS
+        y = raw_mag_data[1] - self._HALF_16BITS
+        z = raw_mag_data[2] - self._HALF_16BITS
+        return (x, y, z)
+
+    @property
+    def magnetic18b_Signed(self) -> Tuple[float, float, float]:
+        """The processed magnetometer sensor values.
+        A 3-tuple of X, Y, Z axis values in ADC unit that are signed floats."""
+        if self._STATUS_MEASUREMENT == MeasurementType.SINGLE:
+            self._RUN_SINGLE_MEASUREMENT()
+
+        raw_mag_data = self._raw_data_mag18
+        x = raw_mag_data[0] - self._HALF_18BITS
+        y = raw_mag_data[1] - self._HALF_18BITS
+        z = raw_mag_data[2] - self._HALF_18BITS
+        return (x, y, z)
+
+    @property
     def magnetic16b_Gauss(self) -> Tuple[float, float, float]:
         """The processed magnetometer sensor values.
         A 3-tuple of X, Y, Z axis values in Gauss that are signed floats."""
