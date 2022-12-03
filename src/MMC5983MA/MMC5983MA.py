@@ -100,12 +100,7 @@ class MMC5983MA:
         self._BW = 3       # Set bandwidth = 800 Hz
         self._CM_FREQ = 0  # Single measurement
 
-        self._CALIBRATION_X16b = 0
-        self._CALIBRATION_Y16b = 0
-        self._CALIBRATION_Z16b = 0
-        self._CALIBRATION_X18b = 0
-        self._CALIBRATION_Y18b = 0
-        self._CALIBRATION_Z18b = 0
+        self.calibrate
 
     @property
     def _PRODUCT_ID(self) -> int:
@@ -492,14 +487,21 @@ class MMC5983MA:
 
     @property
     def calibrate(self) -> bool:
+        self._CALIBRATION_X16b = self._HALF_16BITS
+        self._CALIBRATION_Y16b = self._HALF_16BITS
+        self._CALIBRATION_Z16b = self._HALF_16BITS
+        self._CALIBRATION_X18b = self._HALF_18BITS
+        self._CALIBRATION_Y18b = self._HALF_18BITS
+        self._CALIBRATION_Z18b = self._HALF_18BITS
+
         self.__SET(True)
-        time.sleep(500e-9) # 500 ns
-        x1, y1, z1 = self._raw_data_mag16
-        x3, y3, z3 = self._raw_data_mag18
+        time.sleep(1e-6) # 500 ns
+        x1, y1, z1 = self.magnetic16b_raw
+        x3, y3, z3 = self.magnetic18b_raw
         self.__RESET(True)
-        time.sleep(500e-9) # 500 ns
-        x2, y2, z2 = self._raw_data_mag16
-        x4, y4, z4 = self._raw_data_mag18
+        time.sleep(1e-6) # 500 ns
+        x2, y2, z2 = self.magnetic16b_raw
+        x4, y4, z4 = self.magnetic18b_raw
 
         self._CALIBRATION_X16b = (x1 + x2) / 2
         self._CALIBRATION_Y16b = (y1 + y2) / 2
